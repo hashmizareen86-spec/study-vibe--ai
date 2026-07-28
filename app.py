@@ -1,4 +1,5 @@
-import streamlit as st
+
+        import streamlit as st
 import pdfplumber
 import json
 import google.generativeai as genai
@@ -86,13 +87,13 @@ def extract_pdf_text(uploaded_file):
 # Helper Function: Gemini API Call
 def generate_study_material(text_content, api_key):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
     
     prompt = f"""
     You are an expert Placement Preparation Mentor for Computer Science students.
     Analyze the following study notes/content and extract 3 key Placement Interview Flashcards and 1 Quiz Question.
     
-    Return ONLY a valid JSON object matching this exact structure:
+    Return ONLY a valid JSON object matching this exact structure without markdown code blocks:
     {{
         "flashcards": [
             {{
@@ -115,12 +116,15 @@ def generate_study_material(text_content, api_key):
     {text_content[:4000]}
     """
     
-    response = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
+    response = model.generate_content(prompt)
+    raw_text = response.text.strip()
     
-    return json.loads(response.text)
+    if raw_text.startswith("```json"):
+        raw_text = raw_text[7:-3].strip()
+    elif raw_text.startswith("```"):
+        raw_text = raw_text[3:-3].strip()
+        
+    return json.loads(raw_text)
 
 # UI Layout Header
 st.title("🎓 StudyVibe AI — Placement & Study Companion")
@@ -199,4 +203,3 @@ if st.session_state.data:
                 st.info(f"💡 **Explanation ({lang_choice}):** {exp}")
 else:
     st.info("👈 Sidebar mein Gemini API Key daalein aur PDF upload karke 'Generate' button dabayein!")
-   
