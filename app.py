@@ -1,5 +1,4 @@
-
-        import streamlit as st
+import streamlit as st
 import pdfplumber
 import json
 import google.generativeai as genai
